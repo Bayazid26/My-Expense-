@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Expense Tracker</title>
+    <style>
+        /* Reset & base */
+        *, *::before, *::after {
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          margin: 0;
+          background: #f9fafb;
+          color: #222;
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          padding: 1rem;
+        }
+        main {
+          flex: 1;
+          max-width: 900px;
+          margin: 0 auto;
+          width: 100%;
+          background: #fff;
+          padding: 2rem;
+          border-radius: 12px;
+          box-shadow: 0 0 15px rgb(0 0 0 / 0.1);
+        }
+        h1 {
+          margin-bottom: 1rem;
+          font-weight: 700;
+          font-size: 2rem;
+          text-align: center;
+          color: #0d47a1;
+        }
+
+        form {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+        }
+        label {
+          font-weight: 600;
+          display: block;
+          margin-bottom: 0.25rem;
+          color: #333;
+          font-size: 0.9rem;
+        }
+        input, select, button {
+          padding: 0.6rem 0.75rem;
+          font-size: 1rem;
+          border: 1.5px solid #ccc;
+          border-radius: 6px;
+          outline-offset: 2px;
+          transition: border-color 0.3s ease;
+          width: 100%;
+        }
+        input:focus, select:focus {
+          border-color: #0d47a1;
+          box-shadow: 0 0 4px #0d47a1aa;
+        }
+        button {
+          background-color: #0d47a1;
+          color: white;
+          border: none;
+          cursor: pointer;
+          font-weight: 700;
+          grid-column: span 1;
+          align-self: end;
+          transition: background-color 0.3s ease;
+          user-select: none;
+        }
+        button:hover {
+          background-color: #08306b;
+        }
+        button:disabled {
+          background-color: #999;
+          cursor: not-allowed;
+        }
+
+        /* Filter section */
+        .filter-section {
+          display: flex;
+          gap: 0.75rem;
+          margin-bottom: 2rem;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+        .filter-section input {
+          flex: 1 1 150px;
+        }
+        .filter-section button {
+          flex: 0 0 auto;
+          width: auto;
+          padding: 0.6rem 1.25rem;
+        }
+
+        /* Table styles */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          box-shadow: 0 0 15px rgb(0 0 0 / 0.05);
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        thead {
+          background-color: #0d47a1;
+          color: white;
+        }
+        th, td {
+          padding: 1rem 0.75rem;
+          text-align: left;
+          border-bottom: 1px solid #ddd;
+          font-size: 0.95rem;
+        }
+        tbody tr:hover {
+          background-color: #f0f4ff;
+        }
+
+        /* Summary */
+        #summary {
+          margin-top: 1.5rem;
+          font-size: 1.1rem;
+          font-weight: 700;
+          text-align: right;
+          color: #0d47a1;
+        }
+
+        @media (max-width: 600px) {
+          form {
+            grid-template-columns: 1fr;
+          }
+          .filter-section {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .filter-section button {
+            width: 100%;
+          }
+          #summary {
+            text-align: center;
+          }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>My Expense Tracker</h1>
+
+    <form id="expenseForm" aria-label="Add new expense">
+        <div>
+            <label for="category">Category <sup>*</sup></label>
+            <input type="text" id="category" name="category" placeholder="E.g., Food" required autocomplete="off" />
+        </div>
+
+        <div>
+            <label for="description">Description</label>
+            <input type="text" id="description" name="description" placeholder="Optional description" autocomplete="off" />
+        </div>
+
+        <div>
+            <label for="amount">Amount <sup>*</sup></label>
+            <input type="number" id="amount" name="amount" placeholder="0.00" step="0.01" min="0" required />
+        </div>
+
+        <div>
+            <label for="date">Date <sup>*</sup></label>
+            <input type="date" id="date" name="date" required />
+        </div>
+
+        <div>
+            <button type="submit" aria-label="Add expense">Add Expense</button>
+        </div>
+    </form>
+
+    <section class="filter-section" aria-label="Filter expenses by category">
+        <input type="text" id="filterCategory" placeholder="Filter by category" autocomplete="off" aria-label="Category filter" />
+        <button id="filterBtn" aria-label="Filter expenses">Filter</button>
+        <button id="clearFilterBtn" aria-label="Clear filter">Clear Filter</button>
+    </section>
+
+    <table aria-label="Expenses list" id="expensesTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Expenses will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <div id="summary" aria-live="polite" aria-atomic="true">Total Expenses: $0.00</div>
+</main>
+
+<script>
+    (() => {
+      const API_BASE = '/api/expenses';
+      const expenseForm = document.getElementById('expenseForm');
+      const expensesTableBody = document.querySelector('#expensesTable tbody');
+      const filterCategoryInput = document.getElementById('filterCategory');
+      const filterBtn = document.getElementById('filterBtn');
+      const clearFilterBtn = document.getElementById('clearFilterBtn');
+      const summaryDiv = document.getElementById('summary');
+
+      async function fetchExpenses(category = '') {
+        try {
+          let url = API_BASE;
+          if (category.trim()) {
+            url += `/category/${encodeURIComponent(category.trim())}`;
+          }
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Failed to fetch expenses');
+          return await response.json();
+        } catch (error) {
+          alert(error.message);
+          return [];
+        }
+      }
+
+      function renderExpenses(expenses) {
+        expensesTableBody.innerHTML = expenses.length === 0
+          ? `<tr><td colspan="5" style="text-align:center; color: #666;">No expenses found.</td></tr>`
+          : expenses.map(exp => `
+            <tr>
+              <td>${exp.id}</td>
+              <td>${exp.category}</td>
+              <td>${exp.description || ''}</td>
+              <td>$${exp.amount.toFixed(2)}</td>
+              <td>${exp.date}</td>
+            </tr>
+          `).join('');
+      }
+
+      function updateSummary(expenses, category = '') {
+        const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+        summaryDiv.textContent = `Total Expenses${category ? ` (${category})` : ''}: $${total.toFixed(2)}`;
+      }
+
+      async function loadExpenses(category = '') {
+        const expenses = await fetchExpenses(category);
+        renderExpenses(expenses);
+        updateSummary(expenses, category);
+      }
+
+      expenseForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(expenseForm);
+        const newExpense = {
+          category: formData.get('category').trim(),
+          description: formData.get('description').trim(),
+          amount: parseFloat(formData.get('amount')),
+          date: formData.get('date')
+        };
+
+        if (!newExpense.category || isNaN(newExpense.amount) || !newExpense.date) {
+          alert('Please fill in all required fields.');
+          return;
+        }
+
+        try {
+          const response = await fetch(API_BASE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newExpense)
+          });
+          if (!response.ok) throw new Error('Failed to add expense');
+          expenseForm.reset();
+          filterCategoryInput.value && await loadExpenses(filterCategoryInput.value.trim());
+          if (!filterCategoryInput.value.trim()) {
+            await loadExpenses();
+          }
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      filterBtn.addEventListener('click', () => {
+        const category = filterCategoryInput.value.trim();
+        loadExpenses(category);
+      });
+
+      clearFilterBtn.addEventListener('click', () => {
+        filterCategoryInput.value = '';
+        loadExpenses();
+      });
+
+      // Set max date today for date input
+      document.getElementById('date').max = new Date().toISOString().split('T')[0];
+
+      // Initial load
+      loadExpenses();
+    })();
+</script>
+</body>
+</html>
