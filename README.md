@@ -2,7 +2,7 @@
 Personal Expense Tracker
 # demoSpring
 
-A simple Spring Boot project demonstrating basic CRUD operations using Spring Data JPA.
+A simple Spring Boot project using Spring Data JPA.
 
 ---
 
