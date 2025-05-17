@@ -30,3 +30,48 @@ A simple Spring Boot project using Spring Data JPA.
    ```bash
    git clone https://github.com/your-username/My-Expense.git
    cd My-Expense
+
+
+## 📂 Project Structure
+
+
+My-Expense/
+├── .idea/
+├── .mvn/
+├── src/
+│ └── main/
+│ ├── java/
+│ │ └── com.example.My_Expense/
+│ │ ├── controller/
+│ │ │ └── ExpenseController.java
+│ │ ├── dto/
+│ │ │ └── CategorySummary.java
+│ │ ├── model/
+│ │ │ └── Expense.java
+│ │ ├── repository/
+│ │ │ └── ExpenseRepository.java
+│ │ ├── service/
+│ │ │ └── ExpenseService.java
+│ │ └── MyExpenseApplication.java
+│ └── resources/
+│ ├── static/
+│ ├── templates/
+│ └── application.properties
+
+
+   Endpoint for H2 Database: http://localhost:8080/h2-console/
+   sample json data:
+    [
+  {
+    "amount": 100,
+    "category": "Food",
+    "date": "2025-05-13",
+    "description": "Snacks"
+  },
+  {
+    "amount": 800,
+    "category": "Travel",
+    "date": "2025-05-12",
+    "description": "Taxi fare"
+  }
+]
