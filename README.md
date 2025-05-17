@@ -16,5 +16,17 @@ A simple Spring Boot project using Spring Data JPA.
 
 ---
 
-## 📂 Project Structure
 
+## ✨ Features
+
+- Add, update, delete, and fetch expenses
+- Category-wise expense summaries
+- Clean code architecture using DTO, Service, and Repository layers
+- Easily extendable structure
+
+## 🔧 Setup Instructions
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/My-Expense.git
+   cd My-Expense
