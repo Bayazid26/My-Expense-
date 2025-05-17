@@ -1,7 +1,5 @@
 # My-Expense-
 Personal Expense Tracker
-# demoSpring
-
 A simple Spring Boot project using Spring Data JPA.
 
 ---
